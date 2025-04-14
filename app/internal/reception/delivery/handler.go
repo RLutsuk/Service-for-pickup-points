@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	receptionUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase"
@@ -12,44 +13,53 @@ import (
 
 type Delivery struct {
 	receptionUC receptionUC.UseCaseI
+	logger      *slog.Logger
 }
 
-func NewDelivery(e *echo.Echo, receptionUC receptionUC.UseCaseI) {
+func NewDelivery(e *echo.Echo, receptionUC receptionUC.UseCaseI, logger *slog.Logger) {
 	handler := &Delivery{
 		receptionUC: receptionUC,
+		logger:      logger,
 	}
 	e.POST("/receptions", handler.createReception, authMW.AuthWithRole("employee"))
 	e.POST("/pvz/:pvzId/close_last_reception", handler.closeReception, authMW.AuthWithRole("employee"))
 }
 
 func (delivery *Delivery) createReception(c echo.Context) error {
+
+	delivery.logger.Info("Request to create a receprion by user", c.Get("userID"), c.Get("userRole"))
+
 	var reception models.Reception
 
 	if err := c.Bind(&reception); err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("json parsing error, createReception()", slog.String("error:", err.Error()))
 		return echo.NewHTTPError(http.StatusBadRequest, models.ErrBadData)
 	}
 
 	err := delivery.receptionUC.CreateReception(&reception)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("createReception()", slog.String("error:", err.Error()))
 		return handleReceptionError(err)
 	}
 
-	return c.JSON(http.StatusOK, reception)
+	delivery.logger.Info("successful creation the reception", slog.String("reception_id", reception.ID))
+	return c.JSON(http.StatusCreated, reception)
 }
 
 func (delivery *Delivery) closeReception(c echo.Context) error {
+
+	delivery.logger.Info("Request to close a receprion by user", c.Get("userID"), c.Get("userRole"))
 
 	pickupPointID := c.Param("pvzId")
 	reception, err := delivery.receptionUC.CloseReception(pickupPointID)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("closeReception()", slog.String("error:", err.Error()))
 		return handleReceptionError(err)
 	}
 
+	delivery.logger.Info("successful reception closure", slog.String("reception_id", reception.ID))
 	return c.JSON(http.StatusOK, reception)
 }
 

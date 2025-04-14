@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -39,31 +40,95 @@ func (dbPickupPoint *dataBase) CreatePickupPoint(pickupPoint *models.PickupPoint
 }
 
 func (dbPickupPoint *dataBase) GetAllPickupPoint(startDate, endDate string, offset, limit int) ([]*models.PickupPoint, error) {
+
 	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(dbPickupPoint.db)
-	query := queryBuilder.Select("*").From("pickup_points").OrderBy("registration_date ASC").Offset(uint64(offset)).Limit(uint64(limit))
+	pickupPointQuery := queryBuilder.
+		Select("id", "registration_date", "city").
+		From("pickup_points").
+		OrderBy("registration_date ASC").
+		Offset(uint64(offset)).
+		Limit(uint64(limit))
 
 	if startDate != "" {
-		query = query.Where(sq.GtOrEq{"registration_date": startDate})
+		pickupPointQuery = pickupPointQuery.Where(sq.GtOrEq{"registration_date": startDate})
 	}
 	if endDate != "" {
-		query = query.Where(sq.LtOrEq{"registration_date": endDate})
+		pickupPointQuery = pickupPointQuery.Where(sq.LtOrEq{"registration_date": endDate})
 	}
 
-	rows, err := query.Query()
+	pickupRows, err := pickupPointQuery.Query()
 	if err != nil {
-		return nil, errors.Wrap(err, "database error (table pickup_points, GetAllPickupPoint)")
+		return nil, errors.Wrap(err, "database error (table pcikup_points, GetAllPickupPoint, select pp)")
+	}
+	defer pickupRows.Close()
+
+	pickupPoints := make([]*models.PickupPoint, 0)
+	pickupPointIDs := make([]string, 0)
+	pickupPointMap := make(map[string]*models.PickupPoint)
+
+	for pickupRows.Next() {
+		var pp models.PickupPoint
+		if err := pickupRows.Scan(&pp.ID, &pp.RegistrationDate, &pp.City); err != nil {
+			return nil, err
+		}
+		pickupPoints = append(pickupPoints, &pp)
+		pickupPointMap[pp.ID] = &pp
+		pickupPointIDs = append(pickupPointIDs, pp.ID)
+	}
+
+	receptionProductQuery := queryBuilder.
+		Select(
+			"r.id", "r.date_time", "r.status_reception", "r.pickup_point_id",
+			"p.id", "p.date_time", "p.type_product", "p.reception_id").
+		From("receptions r").
+		LeftJoin("products p ON r.id = p.reception_id").
+		Where(sq.Eq{"r.pickup_point_id": pickupPointIDs})
+
+	rows, err := receptionProductQuery.Query()
+	if err != nil {
+		return nil, errors.Wrap(err, "database error (table pcikup_points, GetAllPickupPoint, select receptions/products)")
 	}
 	defer rows.Close()
 
-	pickupPoints := make([]*models.PickupPoint, 0)
+	receptionMap := make(map[string]*models.Reception)
 
 	for rows.Next() {
-		var pp models.PickupPoint
-		err := rows.Scan(&pp.ID, &pp.RegistrationDate, &pp.City)
-		if err != nil {
-			return nil, errors.Wrap(err, "database error (table pickup_points, GetAllPickupPoint)")
+		var (
+			recID, status, pvzID          string
+			recTime                       time.Time
+			prodID, prodType, receptionID sql.NullString
+			prodTime                      sql.NullTime
+		)
+
+		if err := rows.Scan(&recID, &recTime, &status, &pvzID,
+			&prodID, &prodTime, &prodType, &receptionID); err != nil {
+			return nil, err
 		}
-		pickupPoints = append(pickupPoints, &pp)
+
+		reception, exists := receptionMap[recID]
+		if !exists {
+			reception = &models.Reception{
+				ID:            recID,
+				DateTime:      recTime,
+				Status:        status,
+				PickupPointID: pvzID,
+				Products:      make([]*models.Product, 0),
+			}
+			receptionMap[recID] = reception
+			if pp, ok := pickupPointMap[pvzID]; ok {
+				pp.Receptions = append(pp.Receptions, reception)
+			}
+		}
+
+		if prodID.Valid {
+			product := &models.Product{
+				ID:          prodID.String,
+				TypeProduct: prodType.String,
+				ReceptionID: receptionID.String,
+				DateTime:    prodTime.Time,
+			}
+			reception.Products = append(reception.Products, product)
+		}
 	}
 
 	return pickupPoints, nil

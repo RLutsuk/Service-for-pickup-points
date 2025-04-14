@@ -1,0 +1,26 @@
+mode: set
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:24.136,30.2 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:32.71,35.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:35.16,37.53 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:37.53,39.4 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:40.3,40.34 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:43.2,44.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:44.16,47.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:48.2,48.14 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:48.14,50.3 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:52.2,54.16 3 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:54.16,57.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:59.2,59.12 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:62.84,64.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:64.16,66.53 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:66.53,68.4 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:69.3,69.32 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:72.2,75.16 3 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:75.16,78.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:79.2,79.14 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:79.14,81.3 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:83.2,84.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:84.16,87.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:89.2,90.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:90.16,93.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase/usecase.go:95.2,99.26 4 1

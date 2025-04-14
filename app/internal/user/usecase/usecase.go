@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"log/slog"
 	"regexp"
 	"time"
 
@@ -30,36 +31,43 @@ type UseCaseI interface {
 
 type useCase struct {
 	userRepository userRep.RepositoryI
+	logger         *slog.Logger
 }
 
-func New(userRepository userRep.RepositoryI) UseCaseI {
+func New(userRepository userRep.RepositoryI, logger *slog.Logger) UseCaseI {
 	return &useCase{
 		userRepository: userRepository,
+		logger:         logger,
 	}
 }
 
 func (uc *useCase) CreateUser(user *models.User) error {
 
 	if err := uc.userRepository.ChekUserByEmail(user.Email); err != nil {
+		uc.logger.Error("error with the email user search", slog.String("error", err.Error()))
 		return err
 	}
 
 	if ok := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`).MatchString(user.Email); !ok {
+		uc.logger.Error("invalid email")
 		return models.ErrBadEmail
 	}
 
 	if user.Role != "employee" && user.Role != "moderator" {
+		uc.logger.Error("invalid role")
 		return models.ErrBadData
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
+		uc.logger.Error("error with hash password", slog.String("error", err.Error()))
 		return err
 	}
 	user.Password = string(hash)
 
 	user, err = uc.userRepository.CreateUser(user)
 	if err != nil {
+		uc.logger.Error("error with creation user", slog.String("error", err.Error()))
 		return err
 	}
 
@@ -72,11 +80,13 @@ func (uc *useCase) AuthUser(user *models.User) (string, error) {
 	password := user.Password
 	err := uc.userRepository.GetUserByEmail(user)
 	if err != nil {
+		uc.logger.Error("error with the email user search", slog.String("error", err.Error()))
 		return "", models.ErrUserNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
+		uc.logger.Error("invalid password", slog.String("error", err.Error()))
 		return "", models.ErrUserNotFound
 	}
 
@@ -94,6 +104,7 @@ func (uc *useCase) AuthUser(user *models.User) (string, error) {
 func (uc *useCase) TestUser(role string) (string, error) {
 
 	if role != "employee" && role != "moderator" {
+		uc.logger.Error("invalid role")
 		return "", models.ErrBadData
 	}
 
@@ -115,6 +126,7 @@ func Parsetoken(accessToken string) (string, string, error) {
 		}
 		return []byte(signingKey), nil
 	})
+
 	if err != nil {
 		return "", "", models.ErrBadAuthorizated
 	}

@@ -1,0 +1,25 @@
+mode: set
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:25.82,32.2 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:34.94,36.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:36.16,39.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:41.2,44.16 3 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:44.16,47.3 2 0
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:49.2,49.31 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:49.31,52.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:54.2,54.109 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:54.109,56.3 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:56.8,59.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:61.2,62.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:62.16,65.3 2 0
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:67.2,67.21 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:70.66,72.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:72.16,75.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:77.2,78.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:78.16,81.3 2 0
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:83.2,83.23 1 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:83.23,86.3 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:88.2,90.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:90.16,93.3 2 0
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:95.2,97.16 2 1
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:97.16,100.3 2 0
+github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase/usecase.go:102.2,102.12 1 1

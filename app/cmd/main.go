@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -46,11 +47,11 @@ func main() {
 			postgresHost, postgresUser, postgresPassword, postgresDB, postgresPort)
 	}
 
-	//потом убрать !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	if postgresHost == "" {
-		config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
-		serverAddress = ":8080"
-	}
+	// for local testing
+	// if postgresHost == "" {
+	// 	config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
+	// 	serverAddress = ":8080"
+	// }
 
 	db, err := sql.Open("postgres", config)
 	defer db.Close()
@@ -66,17 +67,27 @@ func main() {
 	productDB := productRep.New(db)
 	userDB := userRep.New(db)
 
-	pickupPointUC := pickupPointUC.New(pickupPointDB)
-	receptionUC := receptionUC.New(receptionDB, pickupPointDB)
-	productUC := productUC.New(productDB, receptionDB, pickupPointDB)
-	userUC := userUC.New(userDB)
+	loggerUC := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		// AddSource: true,
+	}))
+	slog.SetDefault(loggerUC)
+
+	pickupPointUC := pickupPointUC.New(pickupPointDB, loggerUC)
+	receptionUC := receptionUC.New(receptionDB, pickupPointDB, loggerUC)
+	productUC := productUC.New(productDB, receptionDB, pickupPointDB, loggerUC)
+	userUC := userUC.New(userDB, loggerUC)
 
 	e := echo.New()
 
-	pickupPointDev.NewDelivery(e, pickupPointUC)
-	receptionDev.NewDelivery(e, receptionUC)
-	productDev.NewDelivery(e, productUC)
-	userDev.NewDelivery(e, userUC)
+	loggerDel := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		// AddSource: true,
+	}))
+	slog.SetDefault(loggerDel)
+
+	pickupPointDev.NewDelivery(e, pickupPointUC, loggerDel)
+	receptionDev.NewDelivery(e, receptionUC, loggerDel)
+	productDev.NewDelivery(e, productUC, loggerDel)
+	userDev.NewDelivery(e, userUC, loggerDel)
 
 	e.Logger.Fatal(e.Start(serverAddress))
 }

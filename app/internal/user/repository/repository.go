@@ -72,8 +72,8 @@ func (dbUser *dataBase) ChekUserByEmail(email string) error {
 func (dbUser *dataBase) GetUserByEmail(user *models.User) error {
 	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(dbUser.db)
 
-	query := queryBuilder.Select("role_user", "password_user").From("employees").Where(sq.Eq{"email": user.Email})
-	err := query.QueryRow().Scan(&user.Role, &user.Password)
+	query := queryBuilder.Select("id", "role_user", "password_user").From("employees").Where(sq.Eq{"email": user.Email})
+	err := query.QueryRow().Scan(&user.ID, &user.Role, &user.Password)
 	if err != nil {
 		return errors.Wrap(err, "database error (table employees, GetUserByEmail)")
 	}

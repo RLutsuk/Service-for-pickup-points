@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	pickupPointUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase"
@@ -12,35 +13,44 @@ import (
 
 type Delivery struct {
 	pickupPointUC pickupPointUC.UseCaseI
+	logger        *slog.Logger
 }
 
-func NewDelivery(e *echo.Echo, pickupPointUC pickupPointUC.UseCaseI) {
+func NewDelivery(e *echo.Echo, pickupPointUC pickupPointUC.UseCaseI, logger *slog.Logger) {
 	handler := &Delivery{
 		pickupPointUC: pickupPointUC,
+		logger:        logger,
 	}
 	e.POST("/pvz", handler.createPickupPoint, authMW.AuthWithRole("moderator"))
 	e.GET("/pvz", handler.getAllPickupPoints, authMW.AuthWithRole("employee", "moderator"))
 }
 
 func (delivery *Delivery) createPickupPoint(c echo.Context) error {
+
+	delivery.logger.Info("Request to create a pickup point by user", c.Get("userID"), c.Get("userRole"))
+
 	var pickupPoint models.PickupPoint
 
 	if err := c.Bind(&pickupPoint); err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("json parsing error, createPickupPoint()", slog.String("error", err.Error()))
 		return echo.NewHTTPError(http.StatusBadRequest, models.ErrBadData.Error())
 	}
 
 	err := delivery.pickupPointUC.CreatePickupPoint(&pickupPoint)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("error in creating pp, createPickupPoint()", slog.String("error", err.Error()))
 		return handlePickupPointError(err)
 	}
 
-	return c.JSON(http.StatusOK, pickupPoint)
+	delivery.logger.Info("successful creation the pickup point", slog.String("pickup_point", pickupPoint.ID))
+	return c.JSON(http.StatusCreated, pickupPoint)
 }
 
 func (delivery *Delivery) getAllPickupPoints(c echo.Context) error {
+
+	delivery.logger.Info("Request for all PP by user", c.Get("userID"), c.Get("userRole"))
+
 	startDate := c.QueryParam("startDate")
 	endDate := c.QueryParam("endDate")
 	page := c.QueryParam("page")
@@ -49,10 +59,11 @@ func (delivery *Delivery) getAllPickupPoints(c echo.Context) error {
 	pickupPoints, err := delivery.pickupPointUC.GetAllPickupPoint(startDate, endDate, page, limit)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("error in request PP, getAllPickupPoints()", slog.String("error", err.Error()))
 		return handlePickupPointError(err)
 	}
 
+	delivery.logger.Info("All PPs have been successfully found")
 	return c.JSON(http.StatusOK, pickupPoints)
 }
 

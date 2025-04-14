@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>usecase: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase/usecase.go (74.5%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package usecase
+
+import (
+        "errors"
+        "log/slog"
+        "regexp"
+        "time"
+
+        userRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/repository"
+        "github.com/RLutsuk/Service-for-pickup-points/app/models"
+        "github.com/golang-jwt/jwt"
+        "golang.org/x/crypto/bcrypt"
+)
+
+const (
+        signingKey = "2b42e820074d4141beaf4b3018c5360a71ee0b0f05cc0153646dd73ec5f9a3c9"
+        tokenTll   = 12 * time.Hour
+)
+
+type tokenClaims struct {
+        jwt.StandardClaims
+        UserId   string `json:"id"`
+        UserRole string `json:"role"`
+}
+
+type UseCaseI interface {
+        CreateUser(user *models.User) error
+        AuthUser(user *models.User) (string, error)
+        TestUser(role string) (string, error)
+}
+
+type useCase struct {
+        userRepository userRep.RepositoryI
+        logger         *slog.Logger
+}
+
+func New(userRepository userRep.RepositoryI, logger *slog.Logger) UseCaseI <span class="cov8" title="1">{
+        return &amp;useCase{
+                userRepository: userRepository,
+                logger:         logger,
+        }
+}</span>
+
+func (uc *useCase) CreateUser(user *models.User) error <span class="cov8" title="1">{
+
+        if err := uc.userRepository.ChekUserByEmail(user.Email); err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("error with the email user search", slog.String("error", err.Error()))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if ok := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`).MatchString(user.Email); !ok </span><span class="cov8" title="1">{
+                uc.logger.Error("invalid email")
+                return models.ErrBadEmail
+        }</span>
+
+        <span class="cov8" title="1">if user.Role != "employee" &amp;&amp; user.Role != "moderator" </span><span class="cov8" title="1">{
+                uc.logger.Error("invalid role")
+                return models.ErrBadData
+        }</span>
+
+        <span class="cov8" title="1">hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+        if err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("error with hash password", slog.String("error", err.Error()))
+                return err
+        }</span>
+        <span class="cov8" title="1">user.Password = string(hash)
+
+        user, err = uc.userRepository.CreateUser(user)
+        if err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("error with creation user", slog.String("error", err.Error()))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">user.Password = ""
+        return err</span>
+}
+
+func (uc *useCase) AuthUser(user *models.User) (string, error) <span class="cov8" title="1">{
+
+        password := user.Password
+        err := uc.userRepository.GetUserByEmail(user)
+        if err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("error with the email user search", slog.String("error", err.Error()))
+                return "", models.ErrUserNotFound
+        }</span>
+
+        <span class="cov8" title="1">err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+        if err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("invalid password", slog.String("error", err.Error()))
+                return "", models.ErrUserNotFound
+        }</span>
+
+        <span class="cov8" title="1">token := jwt.NewWithClaims(jwt.SigningMethodHS256, &amp;tokenClaims{
+                jwt.StandardClaims{
+                        ExpiresAt: time.Now().Add(time.Hour * 12).Unix(),
+                        IssuedAt:  time.Now().Unix(),
+                },
+                user.ID,
+                user.Role,
+        })
+        return token.SignedString([]byte(signingKey))</span>
+}
+
+func (uc *useCase) TestUser(role string) (string, error) <span class="cov8" title="1">{
+
+        if role != "employee" &amp;&amp; role != "moderator" </span><span class="cov8" title="1">{
+                uc.logger.Error("invalid role")
+                return "", models.ErrBadData
+        }</span>
+
+        <span class="cov8" title="1">token := jwt.NewWithClaims(jwt.SigningMethodHS256, &amp;tokenClaims{
+                jwt.StandardClaims{
+                        ExpiresAt: time.Now().Add(time.Hour * 12).Unix(),
+                        IssuedAt:  time.Now().Unix(),
+                },
+                "testuserID",
+                role,
+        })
+        return token.SignedString([]byte(signingKey))</span>
+}
+
+func Parsetoken(accessToken string) (string, string, error) <span class="cov8" title="1">{
+        token, err := jwt.ParseWithClaims(accessToken, &amp;tokenClaims{}, func(token *jwt.Token) (interface{}, error) </span><span class="cov8" title="1">{
+                if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok </span><span class="cov0" title="0">{
+                        return nil, errors.New("invalid signing method")
+                }</span>
+                <span class="cov8" title="1">return []byte(signingKey), nil</span>
+        })
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return "", "", models.ErrBadAuthorizated
+        }</span>
+
+        <span class="cov8" title="1">claims, ok := token.Claims.(*tokenClaims)
+        if !ok </span><span class="cov0" title="0">{
+                return "", "", models.ErrBadAuthorizated
+        }</span>
+
+        <span class="cov8" title="1">return claims.UserId, claims.UserRole, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

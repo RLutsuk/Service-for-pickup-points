@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	productUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase"
@@ -12,11 +13,13 @@ import (
 
 type Delivery struct {
 	productUC productUC.UseCaseI
+	logger    *slog.Logger
 }
 
-func NewDelivery(e *echo.Echo, productUC productUC.UseCaseI) {
+func NewDelivery(e *echo.Echo, productUC productUC.UseCaseI, logger *slog.Logger) {
 	handler := &Delivery{
 		productUC: productUC,
+		logger:    logger,
 	}
 	e.POST("/products", handler.createProduct, authMW.AuthWithRole("employee"))
 	e.POST("/pvz/:pvzId/delete_last_product", handler.deleteLastProduct, authMW.AuthWithRole("employee"))
@@ -24,8 +27,11 @@ func NewDelivery(e *echo.Echo, productUC productUC.UseCaseI) {
 
 func (delivery *Delivery) createProduct(c echo.Context) error {
 
+	delivery.logger.Info("Request to create a product by user", c.Get("userID"), c.Get("userRole"))
+
 	var body map[string]string
 	if err := c.Bind(&body); err != nil {
+		delivery.logger.Error("json parsing error, createProduct()", slog.String("error", err.Error()))
 		return echo.NewHTTPError(http.StatusBadRequest, models.ErrPickupPointDontExist.Error())
 	}
 
@@ -35,24 +41,28 @@ func (delivery *Delivery) createProduct(c echo.Context) error {
 	product, err := delivery.productUC.CreateProduct(pickupPointID, typeProduct)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("error in creating product, createProduct()", slog.String("error", err.Error()))
 		return handleProductError(err)
 	}
 
-	return c.JSON(http.StatusOK, product)
+	delivery.logger.Info("successful creation the product", slog.String("product_id", product.ID))
+	return c.JSON(http.StatusCreated, product)
 }
 
 func (delivery *Delivery) deleteLastProduct(c echo.Context) error {
+
+	delivery.logger.Info("Request to delete a last product by user", c.Get("userID"), c.Get("userRole"))
 
 	pickupPointID := c.Param("pvzId")
 
 	err := delivery.productUC.DeleteLastProduct(pickupPointID)
 
 	if err != nil {
-		c.Logger().Error(err)
+		delivery.logger.Error("deleteLastProduct()", slog.String("error", err.Error()))
 		return handleProductError(err)
 	}
 
+	delivery.logger.Info("successful product removal", slog.String("pickup point ID", pickupPointID))
 	return c.JSON(http.StatusOK, "The product was successfully deleted")
 }
 
