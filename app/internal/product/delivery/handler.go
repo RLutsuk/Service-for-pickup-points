@@ -8,7 +8,7 @@ import (
 	productUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase"
 	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Delivery struct {
@@ -25,6 +25,17 @@ func NewDelivery(e *echo.Echo, productUC productUC.UseCaseI, logger *slog.Logger
 	e.POST("/pvz/:pvzId/delete_last_product", handler.deleteLastProduct, authMW.AuthWithRole("employee"))
 }
 
+// @Summary     Добавление продукта
+// @Security    ApiKeyAuth
+// @Description Добавление продукта в открытую приемку в выбранном ПВЗ (только для сотрудников ПВЗ)
+// @Tags        product
+// @Accept      json
+// @Produce     json
+// @Param       input  body      models.InProduct   true  "Данные продукта"
+// @Success     201    {object}  models.OutProduct  	  "Добавленный продукт"
+// @Failure     400    {object}  models.ErrorResponse 	  "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse 	  "Внутрення ошибка сервера"
+// @Router      /products [post]
 func (delivery *Delivery) createProduct(c echo.Context) error {
 
 	delivery.logger.Info("Request to create a product by user", c.Get("userID"), c.Get("userRole"))
@@ -49,6 +60,17 @@ func (delivery *Delivery) createProduct(c echo.Context) error {
 	return c.JSON(http.StatusCreated, product)
 }
 
+// @Summary     Удаление продукта
+// @Security    ApiKeyAuth
+// @Description Удаление продукта из открытой приемки в выбранном ПВЗ (только для сотрудников ПВЗ)
+// @Tags        product
+// @Accept      json
+// @Produce     json
+// @Param       pvzId  path      string  				true  "ID ПВЗ"
+// @Success     200    {object}  string  					  "Продукт успешно удален"
+// @Failure     400    {object}  models.ErrorResponse 	      "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse 		  "Внутрення ошибка сервера"
+// @Router      /pvz/{pvzId}/delete_last_product [post]
 func (delivery *Delivery) deleteLastProduct(c echo.Context) error {
 
 	delivery.logger.Info("Request to delete a last product by user", c.Get("userID"), c.Get("userRole"))

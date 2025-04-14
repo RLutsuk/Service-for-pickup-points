@@ -6,7 +6,7 @@ import (
 
 	userUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func AuthWithRole(allowedRoles ...string) echo.MiddlewareFunc {

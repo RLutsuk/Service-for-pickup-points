@@ -8,7 +8,7 @@ import (
 	pickupPointUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase"
 	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Delivery struct {
@@ -25,6 +25,17 @@ func NewDelivery(e *echo.Echo, pickupPointUC pickupPointUC.UseCaseI, logger *slo
 	e.GET("/pvz", handler.getAllPickupPoints, authMW.AuthWithRole("employee", "moderator"))
 }
 
+// @Summary     Создание ПВЗ
+// @Description Создание ПВЗ в сервисе (только для модераторов)
+// @Tags        pvz
+// @Security    ApiKeyAuth
+// @Accept      json
+// @Produce     json
+// @Param       input  body      models.CreationInPickupPoint   true  "Данные для ПВЗ"
+// @Success     201    {object}  models.CreationOutPickupPoint        "Созданный ПВЗ"
+// @Failure     400    {object}  models.ErrorResponse                 "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse                 "Внутренняя ошибка сервера"
+// @Router      /pvz [post]
 func (delivery *Delivery) createPickupPoint(c echo.Context) error {
 
 	delivery.logger.Info("Request to create a pickup point by user", c.Get("userID"), c.Get("userRole"))
@@ -47,6 +58,20 @@ func (delivery *Delivery) createPickupPoint(c echo.Context) error {
 	return c.JSON(http.StatusCreated, pickupPoint)
 }
 
+// @Summary      Получение списка всех ПВЗ
+// @Security 	 ApiKeyAuth
+// @Description  Получение списка всех ПВЗ с их приемками и товарами (только для модераторов и сотрудника ПВЗ)
+// @Tags         pvz
+// @Accept       json
+// @Produce      json
+// @Param        startDate query     string  				false  "startDate"
+// @Param        endDate   query     string 			 	false  "endDate"
+// @Param        limit     query     int     				false  "limit"  default(5)
+// @Param        page      query     int     				false  "page" default(1)
+// @Success      200       {array}   models.PickupPoint 		   "Список всех ПВЗ"
+// @Failure      400       {object}  models.ErrorResponse 		   "Неверный запрос"
+// @Failure      500       {object}  models.ErrorResponse  	       "Внутрення ошибка сервера"
+// @Router       /pvz [get]
 func (delivery *Delivery) getAllPickupPoints(c echo.Context) error {
 
 	delivery.logger.Info("Request for all PP by user", c.Get("userID"), c.Get("userRole"))

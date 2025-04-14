@@ -7,7 +7,7 @@ import (
 
 	userUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Delivery struct {
@@ -25,6 +25,16 @@ func NewDelivery(e *echo.Echo, userUC userUC.UseCaseI, logger *slog.Logger) {
 	e.POST("/dummyLogin", handler.testToken)
 }
 
+// @Summary     Регистрация пользователя
+// @Description Регистрация нового пользователя в системе сервиса
+// @Tags        user
+// @Accept      json
+// @Produce     json
+// @Param       input  body      models.InputUser       true  "Данные пользователя"
+// @Success     201    {object}  models.OutputUser             "Созданный пользователь"
+// @Failure     400    {object}  models.ErrorResponse          "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse          "Внутренняя ошибка сервера"
+// @Router      /register [post]
 func (delivery *Delivery) createUser(c echo.Context) error {
 
 	delivery.logger.Info("Request to create user")
@@ -46,6 +56,16 @@ func (delivery *Delivery) createUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, user)
 }
 
+// @Summary     Авторизация пользователя
+// @Description Авторизация пользователя в системе сервиса
+// @Tags        user
+// @Accept      json
+// @Produce     json
+// @Param       input  body      models.AuthUser       true   "Данные пользователя"
+// @Success     200    {object}  string                       "JWT-токен пользователя"
+// @Failure     400    {object}  models.ErrorResponse         "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse         "Внутренняя ошибка сервера"
+// @Router      /login [post]
 func (delivery *Delivery) authUser(c echo.Context) error {
 
 	var user models.User
@@ -67,6 +87,16 @@ func (delivery *Delivery) authUser(c echo.Context) error {
 	})
 }
 
+// @Summary     Получение тестового токена
+// @Description Получение тестового токена для авторизации в системе сервиса
+// @Tags        user
+// @Accept      json
+// @Produce     json
+// @Param       input  body      string                  true  "Роль пользователя"
+// @Success     200    {object}  string                        "Тестовый JWT-токен пользователя"
+// @Failure     400    {object}  models.ErrorResponse          "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse          "Внутренняя ошибка сервера"
+// @Router      /dummyLogin [post]
 func (delivery *Delivery) testToken(c echo.Context) error {
 
 	var body map[string]string

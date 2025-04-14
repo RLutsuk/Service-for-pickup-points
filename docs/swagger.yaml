@@ -1,0 +1,469 @@
+basePath: /
+definitions:
+  models.AuthUser:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password
+        type: string
+    type: object
+  models.CreationInPickupPoint:
+    properties:
+      city:
+        example: Москва
+        type: string
+    type: object
+  models.CreationOutPickupPoint:
+    properties:
+      city:
+        example: Москва
+        type: string
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      registrationDate:
+        example: "2025-04-14T21:09:46.237Z"
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      message:
+        example: string error
+        type: string
+    type: object
+  models.InProduct:
+    properties:
+      receptionId:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      type:
+        example: электроника
+        type: string
+    type: object
+  models.InReception:
+    properties:
+      pvzId:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+    type: object
+  models.InputUser:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password
+        type: string
+      role:
+        example: employee
+        type: string
+    type: object
+  models.OutProduct:
+    properties:
+      dateTime:
+        example: "2025-04-14T21:17:17.911Z"
+        type: string
+      id:
+        example: 2e292031-a998-4a7a-ae4c-12908941858f
+        type: string
+      receptionId:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      type:
+        example: электроника
+        type: string
+    type: object
+  models.OutReception:
+    properties:
+      dateTime:
+        example: "2025-04-14T21:13:18.396Z"
+        type: string
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      pvzId:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      status:
+        example: in_progress
+        type: string
+    type: object
+  models.OutReceptionClosed:
+    properties:
+      dateTime:
+        example: "2025-04-14T21:13:18.396Z"
+        type: string
+      id:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      pvzId:
+        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        type: string
+      status:
+        example: close
+        type: string
+    type: object
+  models.OutputUser:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 28b0a78e-dee5-4b9c-9a3f-61ab78b2f483
+        type: string
+      role:
+        example: employee
+        type: string
+    type: object
+  models.PickupPoint:
+    properties:
+      city:
+        type: string
+      id:
+        type: string
+      receptions:
+        items:
+          $ref: '#/definitions/models.Reception'
+        type: array
+      registrationDate:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      dateTime:
+        type: string
+      id:
+        type: string
+      receptionId:
+        type: string
+      type:
+        type: string
+    type: object
+  models.Reception:
+    properties:
+      dateTime:
+        type: string
+      id:
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/models.Product'
+        type: array
+      pvzId:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API server for handling product reception at pick-up points
+  title: Service for Avito pick-up point
+  version: "1.1"
+paths:
+  /dummyLogin:
+    post:
+      consumes:
+      - application/json
+      description: Получение тестового токена для авторизации в системе сервиса
+      parameters:
+      - description: Роль пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Тестовый JWT-токен пользователя
+          schema:
+            type: string
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Получение тестового токена
+      tags:
+      - user
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизация пользователя в системе сервиса
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.AuthUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT-токен пользователя
+          schema:
+            type: string
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Авторизация пользователя
+      tags:
+      - user
+  /products:
+    post:
+      consumes:
+      - application/json
+      description: Добавление продукта в открытую приемку в выбранном ПВЗ (только
+        для сотрудников ПВЗ)
+      parameters:
+      - description: Данные продукта
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.InProduct'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Добавленный продукт
+          schema:
+            $ref: '#/definitions/models.OutProduct'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутрення ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Добавление продукта
+      tags:
+      - product
+  /pvz:
+    get:
+      consumes:
+      - application/json
+      description: Получение списка всех ПВЗ с их приемками и товарами (только для
+        модераторов и сотрудника ПВЗ)
+      parameters:
+      - description: startDate
+        in: query
+        name: startDate
+        type: string
+      - description: endDate
+        in: query
+        name: endDate
+        type: string
+      - default: 5
+        description: limit
+        in: query
+        name: limit
+        type: integer
+      - default: 1
+        description: page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список всех ПВЗ
+          schema:
+            items:
+              $ref: '#/definitions/models.PickupPoint'
+            type: array
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутрення ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка всех ПВЗ
+      tags:
+      - pvz
+    post:
+      consumes:
+      - application/json
+      description: Создание ПВЗ в сервисе (только для модераторов)
+      parameters:
+      - description: Данные для ПВЗ
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreationInPickupPoint'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданный ПВЗ
+          schema:
+            $ref: '#/definitions/models.CreationOutPickupPoint'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание ПВЗ
+      tags:
+      - pvz
+  /pvz/{pvzId}/close_last_reception:
+    post:
+      consumes:
+      - application/json
+      description: Закрытие открытой приемки в выбранном ПВЗ (только для сотрудников
+        ПВЗ)
+      parameters:
+      - description: ID ПВЗ
+        in: path
+        name: pvzId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Приемка успешно закрыта
+          schema:
+            $ref: '#/definitions/models.OutReceptionClosed'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутрення ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Закрытие приемки
+      tags:
+      - receprion
+  /pvz/{pvzId}/delete_last_product:
+    post:
+      consumes:
+      - application/json
+      description: Удаление продукта из открытой приемки в выбранном ПВЗ (только для
+        сотрудников ПВЗ)
+      parameters:
+      - description: ID ПВЗ
+        in: path
+        name: pvzId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Продукт успешно удален
+          schema:
+            type: string
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутрення ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление продукта
+      tags:
+      - product
+  /receptions:
+    post:
+      consumes:
+      - application/json
+      description: Создание приемки товаров в выбранном ПВЗ (только для сотрудников
+        ПВЗ)
+      parameters:
+      - description: Данные приемки товаров
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.InReception'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданная приемка
+          schema:
+            $ref: '#/definitions/models.OutReception'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутрення ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание приемки
+      tags:
+      - receprion
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрация нового пользователя в системе сервиса
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.InputUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданный пользователь
+          schema:
+            $ref: '#/definitions/models.OutputUser'
+        "400":
+          description: Неверный запрос
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Регистрация пользователя
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

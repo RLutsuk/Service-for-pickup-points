@@ -24,9 +24,21 @@ import (
 	userDev "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	userRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/repository"
 	userUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
-	"github.com/labstack/echo"
+	_ "github.com/RLutsuk/Service-for-pickup-points/docs"
+	"github.com/labstack/echo/v4"
 )
+
+// @title Service for Avito pick-up point
+// @version 1.1
+// @description API server for handling product reception at pick-up points
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 
 func main() {
 
@@ -89,5 +101,6 @@ func main() {
 	productDev.NewDelivery(e, productUC, loggerDel)
 	userDev.NewDelivery(e, userUC, loggerDel)
 
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.Logger.Fatal(e.Start(serverAddress))
 }

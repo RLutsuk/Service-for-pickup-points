@@ -8,7 +8,7 @@ import (
 	receptionUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase"
 	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Delivery struct {
@@ -25,6 +25,17 @@ func NewDelivery(e *echo.Echo, receptionUC receptionUC.UseCaseI, logger *slog.Lo
 	e.POST("/pvz/:pvzId/close_last_reception", handler.closeReception, authMW.AuthWithRole("employee"))
 }
 
+// @Summary     Создание приемки
+// @Security    ApiKeyAuth
+// @Description Создание приемки товаров в выбранном ПВЗ (только для сотрудников ПВЗ)
+// @Tags        receprion
+// @Accept      json
+// @Produce     json
+// @Param       input  body      models.InReception   true  "Данные приемки товаров"
+// @Success     201    {object}  models.OutReception  		"Созданная приемка"
+// @Failure     400    {object}  models.ErrorResponse 		"Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse 		"Внутрення ошибка сервера"
+// @Router      /receptions [post]
 func (delivery *Delivery) createReception(c echo.Context) error {
 
 	delivery.logger.Info("Request to create a receprion by user", c.Get("userID"), c.Get("userRole"))
@@ -47,6 +58,17 @@ func (delivery *Delivery) createReception(c echo.Context) error {
 	return c.JSON(http.StatusCreated, reception)
 }
 
+// @Summary     Закрытие приемки
+// @Security    ApiKeyAuth
+// @Description Закрытие открытой приемки в выбранном ПВЗ (только для сотрудников ПВЗ)
+// @Tags        receprion
+// @Accept      json
+// @Produce     json
+// @Param       pvzId  path      string 					 true  "ID ПВЗ"
+// @Success     200    {object}  models.OutReceptionClosed 		   "Приемка успешно закрыта"
+// @Failure     400    {object}  models.ErrorResponse 			   "Неверный запрос"
+// @Failure     500    {object}  models.ErrorResponse 		  	   "Внутрення ошибка сервера"
+// @Router      /pvz/{pvzId}/close_last_reception [post]
 func (delivery *Delivery) closeReception(c echo.Context) error {
 
 	delivery.logger.Info("Request to close a receprion by user", c.Get("userID"), c.Get("userRole"))

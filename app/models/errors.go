@@ -25,3 +25,9 @@ var (
 	ErrUserNotFound    = errors.New("login or password does not exist")
 	ErrUserExist       = errors.New("user with this email already exists")
 )
+
+// swagger
+
+type ErrorResponse struct {
+	Message string `json:"message" example:"string error"`
+}
