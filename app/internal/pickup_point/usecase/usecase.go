@@ -7,6 +7,7 @@ import (
 
 	pickupPointRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/repository"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
+	"github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 )
 
 type UseCaseI interface {
@@ -30,8 +31,8 @@ func (uc *useCase) CreatePickupPoint(pickupPoint *models.PickupPoint) error {
 
 	if pickupPoint.City != "Москва" && pickupPoint.City != "Санкт-Петербург" &&
 		pickupPoint.City != "Казань" {
-			uc.logger.Error("Invalid city")
-			return models.ErrBadData
+		uc.logger.Error("Invalid city")
+		return models.ErrBadData
 	}
 
 	uc.logger.Debug("Database request")
@@ -42,6 +43,7 @@ func (uc *useCase) CreatePickupPoint(pickupPoint *models.PickupPoint) error {
 		return err
 	}
 
+	monitoring.PickupPointsCreated.Inc()
 	return nil
 }
 

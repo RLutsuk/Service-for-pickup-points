@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	middleware "github.com/RLutsuk/Service-for-pickup-points/app/internal/middleware"
 	pickupPointUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase"
-	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ func NewDelivery(e *echo.Echo, pickupPointUC pickupPointUC.UseCaseI, logger *slo
 		pickupPointUC: pickupPointUC,
 		logger:        logger,
 	}
-	e.POST("/pvz", handler.createPickupPoint, authMW.AuthWithRole("moderator"))
-	e.GET("/pvz", handler.getAllPickupPoints, authMW.AuthWithRole("employee", "moderator"))
+	e.POST("/pvz", handler.createPickupPoint, middleware.AuthWithRole("moderator"))
+	e.GET("/pvz", handler.getAllPickupPoints, middleware.AuthWithRole("employee", "moderator"))
 }
 
 // @Summary     Создание ПВЗ

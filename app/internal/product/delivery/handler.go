@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	middleware "github.com/RLutsuk/Service-for-pickup-points/app/internal/middleware"
 	productUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/usecase"
-	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ func NewDelivery(e *echo.Echo, productUC productUC.UseCaseI, logger *slog.Logger
 		productUC: productUC,
 		logger:    logger,
 	}
-	e.POST("/products", handler.createProduct, authMW.AuthWithRole("employee"))
-	e.POST("/pvz/:pvzId/delete_last_product", handler.deleteLastProduct, authMW.AuthWithRole("employee"))
+	e.POST("/products", handler.createProduct, middleware.AuthWithRole("employee"))
+	e.POST("/pvz/:pvzId/delete_last_product", handler.deleteLastProduct, middleware.AuthWithRole("employee"))
 }
 
 // @Summary     Добавление продукта

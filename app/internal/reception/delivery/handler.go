@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	middleware "github.com/RLutsuk/Service-for-pickup-points/app/internal/middleware"
 	receptionUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/usecase"
-	authMW "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/delivery"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ func NewDelivery(e *echo.Echo, receptionUC receptionUC.UseCaseI, logger *slog.Lo
 		receptionUC: receptionUC,
 		logger:      logger,
 	}
-	e.POST("/receptions", handler.createReception, authMW.AuthWithRole("employee"))
-	e.POST("/pvz/:pvzId/close_last_reception", handler.closeReception, authMW.AuthWithRole("employee"))
+	e.POST("/receptions", handler.createReception, middleware.AuthWithRole("employee"))
+	e.POST("/pvz/:pvzId/close_last_reception", handler.closeReception, middleware.AuthWithRole("employee"))
 }
 
 // @Summary     Создание приемки

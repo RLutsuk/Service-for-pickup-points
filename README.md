@@ -8,14 +8,14 @@
 
 `$ docker build -f Dockerfile -t pps_service .`
 
-`$ docker run -d -p 8080:8080 --name pps_container pps_service`
+`$ docker run -d -p 8080:8080 -p 9000:9000 --name pps_container pps_service`
 
 **Переменные окружения**
 
 Все переменные окружения по умолчанию заданы в докерфайлах. Можно их изменить либо внутри файлов, либо при запуске
 докер-контейнера, пример:
 
-`$ docker run -d -p 8080:8080 -e POSTGRES_DATABASE=pps -e POSTGRES_PORT=5433 --name pps_container pps_service`
+`$ docker run -d -p 8080:8080 -p 9000:9000 -e POSTGRES_DATABASE=pps -e POSTGRES_PORT=5433 --name pps_container pps_service`
 
 **Реализация**
 
@@ -34,10 +34,15 @@
 Для запуска интеграционного теста необходимо запустить докер-контейнер, после из корневой директории:
 `$ go test .\app\tests\`
 
-
 **Swagger API**
 
 Для удобного просмотра и тестирования API доступен интерфейс Swagger. 
 
 Для его запуска необходимо запустить докер-контейнер, после перейти по адресу:
 [http://localhost:8080/swagger//index.html](http://localhost:8080/swagger//index.html)
+
+**Мониторинг**
+
+Для просмотра метрик (количества созданных ПВЗ, приемок и полученных товаров, а также количества запросов и времени ответа) 
+перейти по адресу:  
+[http://localhost:9000/metrics](http://localhost:9000/metrics)

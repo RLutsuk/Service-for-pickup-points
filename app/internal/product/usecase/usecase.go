@@ -7,6 +7,7 @@ import (
 	productRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/repository"
 	receptionRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/repository"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
+	"github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 )
 
 type UseCaseI interface {
@@ -64,6 +65,7 @@ func (uc *useCase) CreateProduct(pickupPointID, typeProduct string) (*models.Pro
 		return nil, err
 	}
 
+	monitoring.ProductsAdded.Inc()
 	return product, nil
 }
 

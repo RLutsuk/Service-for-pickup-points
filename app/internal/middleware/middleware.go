@@ -1,12 +1,15 @@
-package delivery
+package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	userUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
+	monitoring "github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 	"github.com/labstack/echo/v4"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func AuthWithRole(allowedRoles ...string) echo.MiddlewareFunc {
@@ -48,5 +51,22 @@ func AuthWithRole(allowedRoles ...string) echo.MiddlewareFunc {
 
 			return next(c)
 		}
+	}
+}
+
+func PrometheusMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		path := c.Path()
+		method := c.Request().Method
+
+		timer := prometheus.NewTimer(monitoring.HTTPRequestDuration.WithLabelValues(path))
+		defer timer.ObserveDuration()
+
+		err := next(c)
+
+		status := fmt.Sprintf("%d", c.Response().Status)
+		monitoring.HTTPRequestsTotal.WithLabelValues(path, method, status).Inc()
+
+		return err
 	}
 }

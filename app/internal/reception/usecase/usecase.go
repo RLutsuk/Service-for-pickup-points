@@ -8,6 +8,7 @@ import (
 	pickupPointRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/repository"
 	receptionRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/reception/repository"
 	"github.com/RLutsuk/Service-for-pickup-points/app/models"
+	"github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 )
 
 type UseCaseI interface {
@@ -56,6 +57,7 @@ func (uc *useCase) CreateReception(reception *models.Reception) error {
 		return err
 	}
 
+	monitoring.ReceptionsCreated.Inc()
 	return nil
 }
 

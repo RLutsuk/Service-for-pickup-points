@@ -8,6 +8,7 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	pickupPointDev "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/delivery"
 	pickupPointRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/repository"
@@ -25,6 +26,9 @@ import (
 	userRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/repository"
 	userUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/user/usecase"
 	echoSwagger "github.com/swaggo/echo-swagger"
+
+	middleware "github.com/RLutsuk/Service-for-pickup-points/app/internal/middleware"
+	monitoring "github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 
 	_ "github.com/RLutsuk/Service-for-pickup-points/docs"
 	"github.com/labstack/echo/v4"
@@ -60,10 +64,10 @@ func main() {
 	}
 
 	// for local testing
-	// if postgresHost == "" {
-	// 	config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
-	// 	serverAddress = ":8080"
-	// }
+	if postgresHost == "" {
+		config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
+		serverAddress = ":8080"
+	}
 
 	db, err := sql.Open("postgres", config)
 	defer db.Close()
@@ -101,6 +105,17 @@ func main() {
 	productDev.NewDelivery(e, productUC, loggerDel)
 	userDev.NewDelivery(e, userUC, loggerDel)
 
+	promClient := echo.New()
+	promClient.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	monitoring.Init()
+
+	go func() {
+		promClient.Logger.Fatal(promClient.Start(":9000"))
+	}()
+
+	e.Use(middleware.PrometheusMiddleware)
+
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.Logger.Fatal(e.Start(serverAddress))
+
 }
