@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"errors"
 	"io"
 	"log/slog"
 	"reflect"
@@ -142,6 +143,50 @@ func Test_useCase_GetAllPickupPoint(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllPickupPoint() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetAllPickupPoint() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_useCase_GetListOnlyPickupPoint(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockRepositoryI(ctrl)
+
+	mockRepo.EXPECT().GetListOnlyPickupPoint().Times(1).
+		Return([]*models.PickupPoint{{ID: "1"}}, nil)
+
+	mockRepo.EXPECT().GetListOnlyPickupPoint().Times(1).
+		Return(nil, errors.New("database error"))
+
+	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	uc := New(mockRepo, logger)
+
+	tests := []struct {
+		name    string
+		want    []*models.PickupPoint
+		wantErr bool
+	}{
+		{
+			name:    "successful request",
+			want:    []*models.PickupPoint{{ID: "1"}},
+			wantErr: false,
+		},
+		{
+			name:    "database error",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := uc.GetListOnlyPickupPoint()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreatePickupPoint() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetAllPickupPoint() = %v, want %v", got, tt.want)

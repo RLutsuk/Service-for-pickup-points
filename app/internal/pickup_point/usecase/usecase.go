@@ -13,6 +13,7 @@ import (
 type UseCaseI interface {
 	CreatePickupPoint(pickupPoint *models.PickupPoint) error
 	GetAllPickupPoint(startDate, endDate, page, limit string) ([]*models.PickupPoint, error)
+	GetListOnlyPickupPoint() ([]*models.PickupPoint, error)
 }
 
 type useCase struct {
@@ -89,6 +90,17 @@ func (uc *useCase) GetAllPickupPoint(startDate, endDate, page, limit string) ([]
 
 	uc.logger.Debug("Database request")
 	pickupPoints, err := uc.pickupPointRepository.GetAllPickupPoint(startDate, endDate, offset, limitInt)
+
+	if err != nil {
+		uc.logger.Error("Error in the database request")
+		return nil, err
+	}
+
+	return pickupPoints, nil
+}
+
+func (uc *useCase) GetListOnlyPickupPoint() ([]*models.PickupPoint, error) {
+	pickupPoints, err := uc.pickupPointRepository.GetListOnlyPickupPoint()
 
 	if err != nil {
 		uc.logger.Error("Error in the database request")

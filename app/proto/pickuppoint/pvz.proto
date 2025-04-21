@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package pickuppoint;
+
+option go_package = "github.com/RLutsuk/Service-for-pickup-points/app/proto/pickuppoint;pickuppoint";
+
+import "google/protobuf/timestamp.proto";
+
+service PPService {
+  rpc GetPickupPointList(GetPickupPointRequest) returns (GetPickupPointResponse);
+}
+
+message GetPickupPointRequest {}
+
+message GetPickupPointResponse {
+  repeated PickupPoint pickup_points = 1;
+}
+
+message PickupPoint {
+  string id = 1;
+  google.protobuf.Timestamp registration_date = 2;
+  string city = 3;
+}

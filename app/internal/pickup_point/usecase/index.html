@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase/usecase.go (84.6%)</option>
+				<option value="file0">github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase/usecase.go (86.7%)</option>
 				
 				</select>
 			</div>
@@ -78,11 +78,13 @@ import (
 
         pickupPointRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/repository"
         "github.com/RLutsuk/Service-for-pickup-points/app/models"
+        "github.com/RLutsuk/Service-for-pickup-points/app/monitoring"
 )
 
 type UseCaseI interface {
         CreatePickupPoint(pickupPoint *models.PickupPoint) error
         GetAllPickupPoint(startDate, endDate, page, limit string) ([]*models.PickupPoint, error)
+        GetListOnlyPickupPoint() ([]*models.PickupPoint, error)
 }
 
 type useCase struct {
@@ -101,8 +103,8 @@ func (uc *useCase) CreatePickupPoint(pickupPoint *models.PickupPoint) error <spa
 
         if pickupPoint.City != "Москва" &amp;&amp; pickupPoint.City != "Санкт-Петербург" &amp;&amp;
                 pickupPoint.City != "Казань" </span><span class="cov8" title="1">{
-                        uc.logger.Error("Invalid city")
-                        return models.ErrBadData
+                uc.logger.Error("Invalid city")
+                return models.ErrBadData
         }</span>
 
         <span class="cov8" title="1">uc.logger.Debug("Database request")
@@ -113,7 +115,8 @@ func (uc *useCase) CreatePickupPoint(pickupPoint *models.PickupPoint) error <spa
                 return err
         }</span>
 
-        <span class="cov8" title="1">return nil</span>
+        <span class="cov8" title="1">monitoring.PickupPointsCreated.Inc()
+        return nil</span>
 }
 
 func (uc *useCase) GetAllPickupPoint(startDate, endDate, page, limit string) ([]*models.PickupPoint, error) <span class="cov8" title="1">{
@@ -160,6 +163,17 @@ func (uc *useCase) GetAllPickupPoint(startDate, endDate, page, limit string) ([]
         pickupPoints, err := uc.pickupPointRepository.GetAllPickupPoint(startDate, endDate, offset, limitInt)
 
         if err != nil </span><span class="cov0" title="0">{
+                uc.logger.Error("Error in the database request")
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return pickupPoints, nil</span>
+}
+
+func (uc *useCase) GetListOnlyPickupPoint() ([]*models.PickupPoint, error) <span class="cov8" title="1">{
+        pickupPoints, err := uc.pickupPointRepository.GetListOnlyPickupPoint()
+
+        if err != nil </span><span class="cov8" title="1">{
                 uc.logger.Error("Error in the database request")
                 return nil, err
         }</span>

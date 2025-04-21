@@ -63,6 +63,21 @@ func (mr *MockRepositoryIMockRecorder) GetAllPickupPoint(startDate, endDate, off
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllPickupPoint", reflect.TypeOf((*MockRepositoryI)(nil).GetAllPickupPoint), startDate, endDate, offset, limit)
 }
 
+// GetListOnlyPickupPoint mocks base method.
+func (m *MockRepositoryI) GetListOnlyPickupPoint() ([]*models.PickupPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetListOnlyPickupPoint")
+	ret0, _ := ret[0].([]*models.PickupPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetListOnlyPickupPoint indicates an expected call of GetListOnlyPickupPoint.
+func (mr *MockRepositoryIMockRecorder) GetListOnlyPickupPoint() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetListOnlyPickupPoint", reflect.TypeOf((*MockRepositoryI)(nil).GetListOnlyPickupPoint))
+}
+
 // GetPickupPointByID mocks base method.
 func (m *MockRepositoryI) GetPickupPointByID(pickupPointID string) error {
 	m.ctrl.T.Helper()

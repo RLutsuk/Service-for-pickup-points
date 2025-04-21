@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net"
 	"os"
 
+	"github.com/fatih/color"
 	_ "github.com/lib/pq"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
 
 	pickupPointDev "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/delivery"
 	pickupPointRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/repository"
 	pickupPointUC "github.com/RLutsuk/Service-for-pickup-points/app/internal/pickup_point/usecase"
+	grpcPP "github.com/RLutsuk/Service-for-pickup-points/app/proto/grpc"
+	pickuppoint "github.com/RLutsuk/Service-for-pickup-points/app/proto/pickuppoint"
 
 	productDev "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/delivery"
 	productRep "github.com/RLutsuk/Service-for-pickup-points/app/internal/product/repository"
@@ -64,10 +69,10 @@ func main() {
 	}
 
 	// for local testing
-	if postgresHost == "" {
-		config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
-		serverAddress = ":8080"
-	}
+	// if postgresHost == "" {
+	// 	config = "host=localhost user=db_pg password=db_postgres database=db_pps port=5432 sslmode=disable"
+	// 	serverAddress = ":8080"
+	// }
 
 	db, err := sql.Open("postgres", config)
 	defer db.Close()
@@ -113,9 +118,27 @@ func main() {
 		promClient.Logger.Fatal(promClient.Start(":9000"))
 	}()
 
+	go startGRPCServer(pickupPointUC)
+
 	e.Use(middleware.PrometheusMiddleware)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 	e.Logger.Fatal(e.Start(serverAddress))
+}
 
+func startGRPCServer(pickupPointUC pickupPointUC.UseCaseI) {
+	lis, err := net.Listen("tcp", ":3000")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := grpc.NewServer()
+	srv := grpcPP.NewGRPCServer(pickupPointUC)
+	pickuppoint.RegisterPPServiceServer(s, srv)
+
+	green := color.New(color.FgGreen).SprintFunc()
+	fmt.Printf("%s %s\n", "⇨ grpc server started on", green("[::]:3000"))
+	if err := s.Serve(lis); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -14,6 +14,7 @@ type RepositoryI interface {
 	CreatePickupPoint(pickupPoint *models.PickupPoint) error
 	GetAllPickupPoint(startDate, endDate string, offset, limit int) ([]*models.PickupPoint, error)
 	GetPickupPointByID(pickupPointID string) error
+	GetListOnlyPickupPoint() ([]*models.PickupPoint, error)
 }
 
 type dataBase struct {
@@ -148,4 +149,29 @@ func (dbPickupPoint *dataBase) GetPickupPointByID(pickupPointID string) error {
 	}
 
 	return nil
+}
+
+func (dbPickupPoint *dataBase) GetListOnlyPickupPoint() ([]*models.PickupPoint, error) {
+	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).RunWith(dbPickupPoint.db)
+	pickupPointQuery := queryBuilder.
+		Select("id", "registration_date", "city").
+		From("pickup_points")
+
+	pickupRows, err := pickupPointQuery.Query()
+	if err != nil {
+		return nil, errors.Wrap(err, "database error (table pcikup_points, GetAllPickupPoint, select pp)")
+	}
+	defer pickupRows.Close()
+
+	pickupPoints := make([]*models.PickupPoint, 0)
+
+	for pickupRows.Next() {
+		var pp models.PickupPoint
+		if err := pickupRows.Scan(&pp.ID, &pp.RegistrationDate, &pp.City); err != nil {
+			return nil, err
+		}
+		pickupPoints = append(pickupPoints, &pp)
+	}
+
+	return pickupPoints, nil
 }

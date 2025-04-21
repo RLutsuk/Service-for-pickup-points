@@ -31,4 +31,4 @@ type Product struct {
 	DateTime    time.Time `json:"dateTime"`
 	TypeProduct string    `json:"type"`
 	ReceptionID string    `json:"receptionId"`
-}
+}	
